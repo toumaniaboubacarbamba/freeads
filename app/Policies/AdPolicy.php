@@ -37,7 +37,7 @@ class AdPolicy
      */
     public function update(User $user, Ad $ad): bool
     {
-        return false;
+        return $user->id === $ad->user_id;
     }
 
     /**
@@ -45,7 +45,7 @@ class AdPolicy
      */
     public function delete(User $user, Ad $ad): bool
     {
-        return false;
+        return $user->id === $ad->user_id;
     }
 
     /**

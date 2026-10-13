@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+[x-cloak] { display: none !important; }
+
+/* Bande façon pagne (kita) */
+.kita {
+    height: 8px;
+    background: repeating-linear-gradient(
+        90deg,
+        #F77F00 0 24px, #FFFAF3 24px 30px,
+        #009E60 30px 54px, #FFFAF3 54px 60px,
+        #2B1A0E 60px 66px, #FFFAF3 66px 72px
+    );
+}
