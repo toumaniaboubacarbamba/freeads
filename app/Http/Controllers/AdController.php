@@ -11,6 +11,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class AdController extends Controller implements HasMiddleware
 {
@@ -21,12 +22,32 @@ class AdController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
-    {
-        $ads = Ad::with(['category', 'user', 'photos'])->latest()->paginate(8);
+    public function index(Request $request)
+{
+    $filters = $request->validate([
+        'q'            => ['nullable', 'string', 'max:100'],
+        'categories'   => ['nullable', 'array'],
+        'categories.*' => ['integer'],
+        'location'     => ['nullable', Rule::in(config('akwaba.locations'))],
+        'price_min'    => ['nullable', 'integer', 'min:0'],
+        'price_max'    => ['nullable', 'integer', 'min:0'],
+        'condition'    => ['nullable', Rule::in(array_keys(config('akwaba.conditions')))],
+        'sort'         => ['nullable', Rule::in(['latest', 'price_asc', 'price_desc'])],
+    ]);
 
-        return view('ads.index', compact('ads'));
-    }
+    $query = Ad::with(['category', 'user', 'photos'])->filter($filters);
+
+    match ($filters['sort'] ?? 'latest') {
+        'price_asc'  => $query->orderBy('price'),
+        'price_desc' => $query->orderByDesc('price'),
+        default      => $query->latest(),
+    };
+
+    $ads = $query->paginate(9)->withQueryString();
+    $categories = Category::withCount('ads')->orderBy('name')->get();
+
+    return view('ads.index', compact('ads', 'categories'));
+}
 
     public function mine(Request $request)
 {
@@ -55,11 +76,18 @@ class AdController extends Controller implements HasMiddleware
     }
 
     public function show(Ad $ad)
-    {
-        $ad->load(['category', 'user', 'photos']);
+{
+    $ad->load(['category', 'user', 'photos']);
 
-        return view('ads.show', compact('ad'));
-    }
+    $sellerAds = $ad->user->ads()
+        ->whereKeyNot($ad->id)
+        ->with('photos')
+        ->latest()
+        ->take(3)
+        ->get();
+
+    return view('ads.show', compact('ad', 'sellerAds'));
+}
 
     public function edit(Ad $ad)
     {

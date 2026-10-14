@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class Ad extends Model
 {
@@ -48,4 +50,18 @@ class Ad extends Model
     {
         return Attribute::get(fn () => config('akwaba.conditions')[$this->condition] ?? $this->condition);
     }
+
+    public function scopeFilter(Builder $query, array $f): Builder
+{
+    return $query
+        ->when($f['q'] ?? null, fn ($q, $term) => $q->where(
+            fn ($w) => $w->where('title', 'like', "%{$term}%")
+                         ->orWhere('description', 'like', "%{$term}%")
+        ))
+        ->when($f['categories'] ?? null, fn ($q, $ids) => $q->whereIn('category_id', $ids))
+        ->when($f['location'] ?? null, fn ($q, $loc) => $q->where('location', $loc))
+        ->when(($f['price_min'] ?? '') !== '', fn ($q) => $q->where('price', '>=', (int) $f['price_min']))
+        ->when(($f['price_max'] ?? '') !== '', fn ($q) => $q->where('price', '<=', (int) $f['price_max']))
+        ->when($f['condition'] ?? null, fn ($q, $c) => $q->where('condition', $c));
+}
 }

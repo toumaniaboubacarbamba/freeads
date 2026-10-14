@@ -15,3 +15,20 @@
         #2B1A0E 60px 66px, #FFFAF3 66px 72px
     );
 }
+
+.kita-strip {
+    height: 6px;
+    background-image: repeating-linear-gradient(
+        45deg,
+        #f77f00 0 8px, transparent 8px 16px,
+        #006d40 16px 24px, transparent 24px 32px
+    );
+}
+
+.kita-soft {
+    background-image: repeating-linear-gradient(
+        60deg,
+        rgba(247, 127, 0, 0.05) 0 12px,
+        rgba(0, 109, 64, 0.05) 12px 24px
+    );
+}
