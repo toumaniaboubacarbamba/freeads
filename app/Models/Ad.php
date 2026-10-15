@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use Illuminate\Support\Facades\Storage;
 
 class Ad extends Model
 {
@@ -63,5 +63,14 @@ class Ad extends Model
         ->when(($f['price_min'] ?? '') !== '', fn ($q) => $q->where('price', '>=', (int) $f['price_min']))
         ->when(($f['price_max'] ?? '') !== '', fn ($q) => $q->where('price', '<=', (int) $f['price_max']))
         ->when($f['condition'] ?? null, fn ($q, $c) => $q->where('condition', $c));
+}
+
+protected static function booted(): void
+{
+    static::deleting(function (Ad $ad) {
+        foreach ($ad->photos as $photo) {
+            Storage::disk('public')->delete($photo->path);
+        }
+    });
 }
 }
