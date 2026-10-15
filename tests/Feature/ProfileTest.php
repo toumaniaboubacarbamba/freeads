@@ -7,10 +7,16 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use Illuminate\Filesystem\FilesystemAdapter;
 
 class ProfileTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function disk(): FilesystemAdapter
+{
+    return Storage::disk('public');
+}
 
     public function test_profile_page_is_displayed(): void
     {
@@ -135,6 +141,6 @@ class ProfileTest extends TestCase
 
         $this->assertDatabaseCount('ads', 0);
         $this->assertDatabaseCount('ad_photos', 0);
-        Storage::disk('public')->assertMissing('ads/photo.jpg');
+        $this->disk()->assertMissing('ads/photo.jpg');
     }
 }

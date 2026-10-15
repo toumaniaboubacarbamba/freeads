@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Filesystem\FilesystemAdapter;
 use App\Models\Ad;
 use App\Models\Category;
 use App\Models\User;
@@ -14,6 +15,11 @@ use Tests\TestCase;
 class AdTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function disk(): FilesystemAdapter
+{
+    return Storage::disk('public');
+}
 
     private function payload(Category $category, array $overrides = []): array
     {
@@ -86,7 +92,7 @@ class AdTest extends TestCase
         $this->assertCount(2, $ad->photos);
 
         foreach ($ad->photos as $photo) {
-            Storage::disk('public')->assertExists($photo->path);
+            $this->disk()->assertExists($photo->path);
         }
     }
 
@@ -174,7 +180,7 @@ class AdTest extends TestCase
             'price' => 100000,
             'location' => 'Marcory',
             'condition' => 'new',
-        ])->assertRedirect(route('ads.show', $ad));
+        ])->assertRedirect(route('ads.show', $ad->fresh()));
 
         $ad->refresh();
         $this->assertSame('Nouveau titre', $ad->title);
@@ -202,8 +208,8 @@ class AdTest extends TestCase
 
         $ad->refresh();
         $this->assertCount(1, $ad->photos);
-        Storage::disk('public')->assertMissing('ads/old.jpg');
-        Storage::disk('public')->assertExists($ad->photos->first()->path);
+        $this->disk()->assertMissing('ads/old.jpg');
+        $this->disk()->assertExists($ad->photos->first()->path);
     }
 
     public function test_an_ad_cannot_lose_its_last_photo(): void
@@ -224,7 +230,7 @@ class AdTest extends TestCase
         ])->assertSessionHasErrors('photos');
 
         $this->assertCount(1, $ad->fresh()->photos);
-        Storage::disk('public')->assertExists('ads/old.jpg');
+        $this->disk()->assertExists('ads/old.jpg');
     }
 
     public function test_other_users_cannot_edit_or_update_an_ad(): void
@@ -261,7 +267,7 @@ class AdTest extends TestCase
 
         $this->assertDatabaseMissing('ads', ['id' => $ad->id]);
         $this->assertDatabaseCount('ad_photos', 0);
-        Storage::disk('public')->assertMissing('ads/old.jpg');
+        $this->disk()->assertMissing('ads/old.jpg');
     }
 
     public function test_other_users_cannot_delete_an_ad(): void
@@ -274,7 +280,7 @@ class AdTest extends TestCase
         $this->actingAs($intruder)->delete(route('ads.destroy', $ad))->assertForbidden();
 
         $this->assertDatabaseHas('ads', ['id' => $ad->id]);
-        Storage::disk('public')->assertExists('ads/old.jpg');
+        $this->disk()->assertExists('ads/old.jpg');
     }
 
     // --- Mes annonces --------------------------------------------------

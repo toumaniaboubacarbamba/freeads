@@ -18,6 +18,12 @@ class AdPhoto extends Model
 
     protected function url(): Attribute
 {
-    return Attribute::get(fn () => asset('storage/'.$this->path));
+    return Attribute::get(function () {
+        $disk = config('akwaba.photo_disk');
+
+        return $disk === 'public'
+            ? asset('storage/'.$this->path)
+            : Storage::disk($disk)->url($this->path);
+    });
 }
 }

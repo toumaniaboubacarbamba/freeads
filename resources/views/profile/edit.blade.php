@@ -8,7 +8,7 @@
     $err = 'mt-1 text-sm text-red-600';
 @endphp
 
-<x-akwaba-layout title="Mon profil">
+<x-akwaba-layout title="Mon profil" robots="noindex, nofollow">
     <div class="mx-auto max-w-3xl space-y-6">
 
         {{-- En-tête --}}

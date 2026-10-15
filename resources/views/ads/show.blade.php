@@ -7,10 +7,41 @@
     ][$ad->condition] ?? 'bg-inverse-surface/80';
     $initial = mb_strtoupper(mb_substr($ad->user->login, 0, 1));
     $waText = 'Bonjour, je suis intéressé(e) par votre annonce « '.$ad->title.' » sur Akwaba Annonces.';
+    $conditionSchema = ['new' => 'NewCondition', 'good' => 'UsedCondition', 'used' => 'UsedCondition'][$ad->condition] ?? 'UsedCondition';
+    $plainDescription = trim(preg_replace('/\s+/', ' ', strip_tags($ad->description)));
+    $metaDescription = $ad->price_formatted.' — '.\Illuminate\Support\Str::limit($plainDescription, 140);
+    $canonical = route('ads.show', $ad);
+    $jsonLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Product',
+        'name' => $ad->title,
+        'description' => $plainDescription,
+        'image' => $photoUrls->all(),
+        'category' => $ad->category->name,
+        'itemCondition' => 'https://schema.org/'.$conditionSchema,
+        'offers' => [
+            '@type' => 'Offer',
+            'url' => $canonical,
+            'price' => (string) $ad->price,
+            'priceCurrency' => 'XOF',
+            'availability' => 'https://schema.org/InStock',
+            'areaServed' => $ad->location.', Côte d\'Ivoire',
+            'seller' => ['@type' => 'Person', 'name' => $ad->user->login],
+        ],
+    ];
     $card = 'rounded-2xl border border-outline-variant/50 bg-surface-container-lowest p-6 shadow-[0_2px_8px_rgba(43,30,22,0.04)]';
 @endphp
 
-<x-akwaba-layout :title="$ad->title">
+<x-akwaba-layout :title="$ad->title.' à '.$ad->location"
+                 :description="$metaDescription"
+                 :image="$photoUrls->first()"
+                 :canonical="$canonical"
+                 type="product">
+    <x-slot:head>
+        {{-- Données structurées : permet à Google d'afficher le prix dans les résultats --}}
+        <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+    </x-slot:head>
+
     {{-- Fil d'Ariane --}}
     <nav class="mb-4 flex flex-wrap items-center gap-1 text-sm text-on-surface-variant" aria-label="Fil d'Ariane">
         <a href="{{ route('home') }}" class="hover:text-primary-container">Accueil</a>
@@ -185,5 +216,22 @@
                 </div>
             @endif
         </aside>
+    </div>
+    {{-- Espace réservé sous la barre de contact mobile --}}
+    <div class="h-20 lg:hidden"></div>
+
+    {{-- Barre de contact collée en bas sur mobile --}}
+    <div class="fixed inset-x-0 bottom-0 z-30 border-t border-outline-variant/50 bg-white/95 p-3 backdrop-blur lg:hidden"
+         style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom))">
+        <div class="mx-auto grid max-w-md grid-cols-2 gap-2">
+            <a href="https://wa.me/{{ $ad->user->whatsapp_number }}?text={{ urlencode($waText) }}" target="_blank" rel="noopener"
+               class="flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 font-bold text-white">
+                <span class="material-symbols-outlined text-[20px]">chat</span> WhatsApp
+            </a>
+            <a href="tel:{{ $ad->user->phone }}"
+               class="flex items-center justify-center gap-2 rounded-xl bg-primary-container px-4 py-3 font-bold text-white">
+                <span class="material-symbols-outlined text-[20px]">call</span> Appeler
+            </a>
+        </div>
     </div>
 </x-akwaba-layout>

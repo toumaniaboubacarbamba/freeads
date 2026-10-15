@@ -4,7 +4,7 @@
     $card = 'rounded-2xl border border-outline-variant/50 bg-surface-container-lowest shadow-[0_2px_8px_rgba(43,30,22,0.04)]';
 @endphp
 
-<x-akwaba-layout title="Mes annonces">
+<x-akwaba-layout title="Mes annonces" robots="noindex, nofollow">
     {{-- En-tête du compte --}}
     <section class="{{ $card }} p-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

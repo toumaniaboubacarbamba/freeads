@@ -114,7 +114,7 @@ class AdController extends Controller implements HasMiddleware
         $ad->update($request->safe()->except(['photos', 'remove_photos']));
 
         foreach ($ad->photos()->whereIn('id', $removeIds)->get() as $photo) {
-            Storage::disk('public')->delete($photo->path);
+            Storage::disk(config('akwaba.photo_disk'))->delete($photo->path);
             $photo->delete();
         }
 
@@ -128,7 +128,7 @@ class AdController extends Controller implements HasMiddleware
         Gate::authorize('delete', $ad);
 
         foreach ($ad->photos as $photo) {
-            Storage::disk('public')->delete($photo->path);
+            Storage::disk(config('akwaba.photo_disk'))->delete($photo->path);
         }
 
         $ad->delete(); // les lignes ad_photos sont supprimées en cascade
@@ -142,7 +142,7 @@ class AdController extends Controller implements HasMiddleware
 
         foreach ($files as $file) {
             $ad->photos()->create([
-                'path'     => $file->store('ads', 'public'),
+                'path'     => $file->store('ads', config('akwaba.photo_disk')),
                 'position' => $position++,
             ]);
         }

@@ -1,11 +1,19 @@
 @php
+    // Une page filtrée ne doit pas être indexée (contenu dupliqué) : seule la liste de base l'est.
+    $isFiltered = collect(request()->query())->except('page')->filter(fn ($v) => filled($v) && $v !== 'latest')->isNotEmpty();
+    $canonical = $isFiltered
+        ? route('home')
+        : route('home', $ads->currentPage() > 1 ? ['page' => $ads->currentPage()] : []);
     $selectedCategories = collect(request('categories', []))->map(fn ($id) => (int) $id)->all();
     $currentCondition = request('condition', '');
     $currentSort = request('sort', 'latest');
     $field = 'w-full rounded-xl border-[1.5px] border-outline-variant bg-white px-4 py-3 text-sm focus:border-primary-container focus:ring-4 focus:ring-primary-container/15';
 @endphp
 
-<x-akwaba-layout title="Petites annonces en Côte d'Ivoire">
+<x-akwaba-layout title="Petites annonces gratuites en Côte d'Ivoire"
+                 description="Achetez et vendez près de chez vous : véhicules, immobilier, téléphones, emploi et plus encore. Annonces gratuites à Abidjan, Bouaké, Yamoussoukro et partout en Côte d'Ivoire."
+                 :canonical="$canonical"
+                 :robots="$isFiltered ? 'noindex, follow' : null">
     <form method="GET" action="{{ route('home') }}">
 
         {{-- Bandeau + barre de recherche --}}

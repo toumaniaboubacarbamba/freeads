@@ -13,4 +13,5 @@ return [
         'Yopougon', 'Abengourou', 'Bouaké', 'Daloa', 'Grand-Bassam', 'Korhogo',
         'Man', 'San-Pédro', 'Yamoussoukro',
     ],
+    'photo_disk' => env('PHOTO_DISK', 'public'),
 ];

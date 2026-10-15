@@ -1,5 +1,10 @@
-@props(['title' => null])
+@props(['title' => null, 'description' => null, 'image' => null, 'canonical' => null, 'robots' => null, 'type' => 'website'])
 @php
+    $siteName = config('app.name');
+    $fullTitle = $title ? $title.' — '.$siteName : $siteName.' — Petites annonces gratuites en Côte d\'Ivoire';
+    $metaDescription = $description ?: 'Achetez et vendez gratuitement en Côte d\'Ivoire : véhicules, immobilier, téléphones, emploi et plus encore, à Abidjan, Bouaké, Yamoussoukro et partout dans le pays.';
+    $canonicalUrl = $canonical ?: url()->current();
+    $ogImage = $image ?: asset('images/og-default.png');
     $cats = $footerCategories ?? collect();
     $navCats = $cats->whereIn('slug', ['vehicules', 'immobilier', 'telephones']);
 @endphp
@@ -8,8 +13,27 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ? $title.' — ' : '' }}{{ config('app.name') }}</title>
-    <meta name="description" content="Petites annonces gratuites en Côte d'Ivoire : véhicules, immobilier, téléphones, emploi et plus encore.">
+    <title>{{ $fullTitle }}</title>
+    <meta name="description" content="{{ $metaDescription }}">
+    @if ($robots)
+        <meta name="robots" content="{{ $robots }}">
+    @endif
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <meta name="theme-color" content="#f77f00">
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+
+    {{-- Open Graph / Twitter : aperçu lors d'un partage WhatsApp, Facebook, etc. --}}
+    <meta property="og:site_name" content="{{ $siteName }}">
+    <meta property="og:locale" content="fr_CI">
+    <meta property="og:type" content="{{ $type }}">
+    <meta property="og:title" content="{{ $fullTitle }}">
+    <meta property="og:description" content="{{ $metaDescription }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $fullTitle }}">
+    <meta name="twitter:description" content="{{ $metaDescription }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,20 +41,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{ $head ?? '' }}
 </head>
 <body class="flex min-h-screen flex-col bg-surface font-sans text-on-surface antialiased">
+    <a href="#contenu" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:font-bold">Aller au contenu</a>
     <div class="kita-strip"></div>
 
     {{-- En-tête --}}
     <header class="sticky top-0 z-30 border-b border-outline-variant/40 bg-surface-container-lowest/95 backdrop-blur">
         <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
-            <a href="{{ route('home') }}" class="flex items-center gap-2">
+            <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-2">
                 <span class="grid h-10 w-10 place-items-center rounded-xl bg-primary-container text-white">
                     <span class="material-symbols-outlined">storefront</span>
                 </span>
                 <span class="leading-tight">
-                    <span class="block text-lg font-extrabold text-primary-container">Akwaba Annonces</span>
-                    <span class="block text-[10px] font-bold uppercase tracking-wider text-secondary">Le carrefour ivoirien</span>
+                    <span class="block text-base font-extrabold text-primary-container sm:text-lg">Akwaba Annonces</span>
+                    <span class="hidden text-[10px] font-bold uppercase tracking-wider text-secondary sm:block">Le carrefour ivoirien</span>
                 </span>
             </a>
 
@@ -66,6 +93,10 @@
                         </div>
                     </div>
                 @else
+                    <a href="{{ route('login') }}" aria-label="Connexion"
+                       class="grid h-10 w-10 place-items-center rounded-full border border-outline-variant sm:hidden">
+                        <span class="material-symbols-outlined">account_circle</span>
+                    </a>
                     <a href="{{ route('login') }}" class="hidden px-2 hover:text-primary-container sm:inline">Connexion</a>
                     <a href="{{ route('register') }}" class="hidden px-2 hover:text-primary-container sm:inline">Inscription</a>
                 @endauth
@@ -97,18 +128,18 @@
         </div>
     @endif
 
-    <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-10">
+    <main id="contenu" class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-10">
         {{ $slot }}
     </main>
 
     {{-- Pied de page --}}
     <footer class="mt-10 bg-surface-container-lowest">
         <div class="kita-strip"></div>
-        <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-10">
-            <div>
+        <div class="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-10">
+            <div class="col-span-2 md:col-span-1">
                 <p class="text-lg font-extrabold text-primary-container">Akwaba Annonces</p>
                 <p class="mt-2 text-sm text-on-surface-variant">
-                    Petites annonces gratuites en Côte d'Ivoire. Achetez, vendez et échangez d'Abidjan à Man.
+                    Petites annonces gratuites en Côte d'Ivoire. Achetez, vendez et échangez de Cocody à San-Pédro.
                 </p>
             </div>
 

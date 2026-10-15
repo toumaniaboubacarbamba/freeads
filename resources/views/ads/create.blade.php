@@ -1,4 +1,4 @@
-<x-akwaba-layout title="Publier une annonce">
+<x-akwaba-layout title="Publier une annonce" robots="noindex, nofollow">
     <div class="mx-auto max-w-3xl">
         <div class="mb-6">
             <h1 class="text-3xl font-extrabold tracking-tight">Publier une nouvelle annonce</h1>
